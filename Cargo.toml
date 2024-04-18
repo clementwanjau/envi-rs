@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 lazy_static = "1.4.0"
+thiserror = "1.0.58"
+log = "0.4.21"
