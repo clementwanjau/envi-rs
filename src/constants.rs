@@ -66,6 +66,31 @@ pub const RMETA_NMASK: i64 = 0x0000ffff;
 pub const ENDIAN_LSB: i32 = 0;
 /// Big-endian
 pub const ENDIAN_MSB: i32 = 1;
+
+/// The default endianness for the architecture.
+pub enum Endianess {
+    /// Little-endian
+    Little,
+    /// Big-endian
+    Big,
+}
+
+impl Endianess {
+    pub fn from_i32(val: i32) -> Self {
+        match val {
+            ENDIAN_LSB => Endianess::Little,
+            ENDIAN_MSB => Endianess::Big,
+            _ => panic!("Invalid endianess value: {}", val),
+        }
+    }
+    
+    pub fn to_i32(&self) -> i32 {
+        match self {
+            Endianess::Little => ENDIAN_LSB,
+            Endianess::Big => ENDIAN_MSB,
+        }
+    }
+}
 // endregion
 
 // region: -- Memory Map Permission Flags
@@ -109,20 +134,21 @@ lazy_static! {
         ("msp430", ARCH_MSP430),
         ("h8", ARCH_H8),
     ]);
-    
-    pub static ref PERMISSION_NAMES: Vec<&'static str> = {
+
+    pub static ref PERMISSION_NAMES: Vec<String> = {
         let mut perm_names = vec![
-            "No Access",
-            "Execute",
-            "Write",
-            "Write/Exec",
-            "Read",
-            "Read/Exec",
-            "Read/Write",
-            "Read/Write/Exec",
+            "No Access".to_string(),
+            "Execute".to_string(),
+            "Write".to_string(),
+            "Write/Exec".to_string(),
+            "Read".to_string(),
+            "Read/Exec".to_string(),
+            "Read/Write".to_string(),
+            "Read/Write/Exec".to_string(),
         ];
-        for perm_name in perm_names.iter() {
-            perm_names.push(format!("Shared: {perm_name}").as_str());
+        for perm_name in perm_names.clone() {
+            let shared_perm = format!("Shared: {perm_name}");
+            perm_names.push(shared_perm);
         }
         perm_names
     };
