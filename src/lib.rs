@@ -5,7 +5,6 @@ use crate::emulator::Emulator;
 use crate::error::Error::ArchNotImplemented;
 use crate::operands::OpCode;
 use crate::registers::RegisterContext;
-use crate::utils::get_arch_by_name;
 
 mod constants;
 mod utils;
@@ -26,7 +25,7 @@ pub trait ArchitectureModuleData {
     fn get_arch_maxinst(&self) -> i32;
     fn get_arch_bad_op_bytes(&self) -> Vec<Vec<u8>>;
     fn get_endian(&self) -> Endianess;
-    fn get_bad_ops(&self) -> &mut Vec<OpCode>;
+    fn get_bad_ops(&mut self) -> &mut Vec<OpCode>;
     
     fn get_default_call(&self) -> Option<i32>;
     fn get_plat_default_calls(&self) -> HashMap<&str, i32>;
@@ -37,7 +36,9 @@ pub trait ArchitectureModuleData {
 /// with the creation of envi objects for the specified
 /// architecture.
 pub trait ArchitectureModule {
-    fn get_data(&self) -> &mut dyn ArchitectureModuleData;
+    fn get_data_mut(&mut self) -> &mut dyn ArchitectureModuleData;
+    
+    fn get_data(&self) -> &dyn ArchitectureModuleData;
 
     /// Return the envi ARCH_FOO value for this arch.
     fn get_arch_id(&self) -> i32 {
@@ -126,15 +127,16 @@ pub trait ArchitectureModule {
 
     /// Returns a list of opcodes which are indicators of wrong disassembly.
     /// `bytes` is `None` to use the architecture default, or can be a custom list.
-    fn arch_get_bad_ops(&self, bytes: Option<Vec<Vec<u8>>>) -> Result<Vec<OpCode>> {
-        if bytes.as_ref().is_none() && self.get_data().get_bad_ops().len() > 0 {
-            return Ok(self.get_data().get_bad_ops().clone());
+    fn arch_get_bad_ops(&mut self, bytes: Option<Vec<Vec<u8>>>) -> Result<Vec<OpCode>> {
+        if bytes.as_ref().is_none() && self.get_data_mut().get_bad_ops().len() > 0 {
+            return Ok(self.get_data_mut().get_bad_ops().clone());
         }
-        *self.get_data().get_bad_ops() = vec![];
+        *self.get_data_mut().get_bad_ops() = vec![];
         for bad_bytes in bytes.unwrap().iter() {
-            self.get_data().get_bad_ops().push(self.arch_parse_opcode(bad_bytes.clone(), None, None)?);
+            let op_code = self.arch_parse_opcode(bad_bytes.clone(), None, None)?;
+            self.get_data_mut().get_bad_ops().push(op_code);
         }
-        Ok(self.get_data().get_bad_ops().clone())
+        Ok(self.get_data_mut().get_bad_ops().clone())
     }
     
     /// Return a default instance of an emulator for the given arch.
