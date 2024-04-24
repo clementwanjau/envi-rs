@@ -6,29 +6,7 @@ use crate::error::Error::FuncNotImplemented;
 use crate::memcanvas::MemoryCanvas;
 use crate::Result;
 
-/// These are the expected methods needed by any implemented operand object
-/// attached to an envi Opcode.  This does *not* have a constructor of it's
-/// pwn on purpose to cut down on memory use and constructor CPU cost.
-pub trait Operand {
-    /// Get the current value for the operand.  If needed, use
-    /// the given emulator/workspace/trace to resolve things like
-    /// memory and registers.
-    ///
-    /// NOTE: This API may be passed a None emu and should return what it can
-    /// (or None if it can't be resolved)
-    fn get_oper_value(&self, _op: OpCode, _emulator: Option<&dyn Emulator>) -> Result<Option<i32>> {
-        Err(FuncNotImplemented("get_oper_value".to_string()))
-    }
-
-    /// Set the current value for the operand.  If needed, use
-    /// the given emulator/workspace/trace to assign things like
-    /// memory and registers.
-    fn set_oper_value(&self, _op: OpCode, _emulator: Option<&dyn Emulator>, _val: i32) -> Result<()> {
-        warn!("set_oper_value not implemented");
-        Err(FuncNotImplemented("set_oper_value".to_string()))
-    }
-
-    /// If the given operand will dereference memory, this method must return `true`.
+pub trait Operand{
     fn is_deref(&self) -> bool {
         false
     }
@@ -48,12 +26,38 @@ pub trait Operand {
         false
     }
 
+}
+
+/// These are the expected methods needed by any implemented operand object
+/// attached to an envi Opcode.  This does *not* have a constructor of it's
+/// pwn on purpose to cut down on memory use and constructor CPU cost.
+impl dyn Operand  {
+    /// Get the current value for the operand.  If needed, use
+    /// the given emulator/workspace/trace to resolve things like
+    /// memory and registers.
+    ///
+    /// NOTE: This API may be passed a None emu and should return what it can
+    /// (or None if it can't be resolved)
+    pub fn get_oper_value(&self, _op: OpCode, _emulator: Option<&dyn Emulator>) -> Result<Option<i32>> {
+        Err(FuncNotImplemented("get_oper_value".to_string()))
+    }
+
+    /// Set the current value for the operand.  If needed, use
+    /// the given emulator/workspace/trace to assign things like
+    /// memory and registers.
+    pub fn set_oper_value(&mut self, _op: OpCode, _emulator: Option<&dyn Emulator>, _val: i32) -> Result<()> {
+        warn!("set_oper_value not implemented");
+        Err(FuncNotImplemented("set_oper_value".to_string()))
+    }
+
+    /// If the given operand will dereference memory, this method must return `true`.
+    
     /// If the operand is a "dereference" operand, this method should use the
     /// specified op/emu to resolve the address of the dereference.
     ///
     /// NOTE: This API may be passed a None emu and should return what it can
     /// (or None if it can't be resolved)
-    fn get_oper_addr(&self, _op: OpCode, _emulator: Option<&dyn Emulator>) -> Result<Option<i32>> {
+    pub fn get_oper_addr(&self, _op: OpCode, _emulator: Option<&dyn Emulator>) -> Result<Option<i32>> {
         warn!("get_oper_addr not implemented");
         Err(FuncNotImplemented("get_oper_addr".to_string()))
     }
